@@ -1,104 +1,110 @@
-SELECT DISTINCT nom, prenom FROM employe ORDER BY nom;
+select distinct nom, prenom from employe order by nom;
 
-SELECT e.nom, e.prenom
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-WHERE en.nom = 'Atlas Distribution';
+select e.nom, e.prenom
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+where lower(en.nom) = 'atlas distribution';
 
-SELECT nom, prenom, date_naissance
-FROM employe
-WHERE EXTRACT(YEAR FROM date_naissance) > 2020;
+select nom, prenom, date_naissance
+from employe
+where extract(year from date_naissance) > 2020;
 
-SELECT nom, prenom
-FROM employe
-WHERE id_employe IN (SELECT id_manager FROM diriger);
+select nom, prenom
+from employe
+where id_employe in (select id_manager from diriger);
 
-SELECT ROUND(AVG(salaire), 2) AS salaire_moyen FROM employe;
+select round(avg(salaire), 2) as salaire_moyen from employe;
 
-SELECT en.nom AS entreprise, ROUND(AVG(e.salaire), 2) AS salaire_moyen
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-GROUP BY en.nom
-ORDER BY en.nom;
+select en.nom as entreprise, round(avg(e.salaire), 2) as salaire_moyen
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+group by en.nom
+order by en.nom;
 
-SELECT CONCAT(prenom, ' ', nom, ' : ', salaire) AS employe_salaire
-FROM employe;
+select concat(prenom, ' ', nom, ' : ', salaire) as employe_salaire
+from employe;
 
-SELECT m.nom, m.prenom, COUNT(*) AS nb_diriges
-FROM diriger d
-JOIN employe m ON m.id_employe = d.id_manager
-GROUP BY m.id_employe, m.nom, m.prenom
-ORDER BY nb_diriges DESC;
+select m.nom, m.prenom, count(*) as nb_diriges
+from diriger d
+join employe m on m.id_employe = d.id_manager
+group by m.id_employe, m.nom, m.prenom
+order by nb_diriges desc;
 
-SELECT ROUND(AVG(nb_diriges), 2) AS moyenne_diriges
-FROM (SELECT COUNT(*) AS nb_diriges FROM diriger GROUP BY id_manager) t;
+select round(avg(nb_diriges), 2) as moyenne_diriges
+from (select count(*) as nb_diriges from diriger group by id_manager) t;
 
-SELECT nom, prenom, EXTRACT(YEAR FROM AGE(date_naissance)) AS age
-FROM employe;
+select nom, prenom, extract(year from age(date_naissance)) as age
+from employe;
 
-SELECT nom, prenom
-FROM employe
-WHERE id_employe NOT IN (SELECT id_manager FROM diriger);
+select nom, prenom
+from employe
+where id_employe not in (select id_manager from diriger);
 
-SELECT en.nom AS entreprise, ROUND(AVG(t.nb_diriges), 2) AS moyenne_diriges
-FROM (SELECT id_manager, COUNT(*) AS nb_diriges FROM diriger GROUP BY id_manager) t
-JOIN employe m     ON m.id_employe     = t.id_manager
-JOIN entreprise en ON en.id_entreprise = m.id_entreprise
-GROUP BY en.nom
-ORDER BY en.nom;
+select en.nom as entreprise, count(d.id_dirige) as nb_diriges
+from entreprise en
+join employe e on e.id_entreprise = en.id_entreprise
+left join diriger d on d.id_dirige = e.id_employe
+group by en.nom
+order by en.nom;
 
-SELECT CONCAT(m.prenom, ' ', m.nom) AS manager,
-       CONCAT(n.prenom, ' ', n.nom) AS n_moins_1,
-       d.date AS date_prise_en_charge
-FROM diriger d
-JOIN employe m ON m.id_employe = d.id_manager
-JOIN employe n ON n.id_employe = d.id_dirige
-ORDER BY manager, d.date;
+select round(avg(nb_diriges), 2) as moyenne_diriges
+from (select e.id_entreprise, count(d.id_dirige) as nb_diriges
+      from employe e
+      left join diriger d on d.id_dirige = e.id_employe
+      group by e.id_entreprise) t;
 
-SELECT CASE WHEN id_employe IN (SELECT id_manager FROM diriger)
-            THEN 'manager' ELSE 'autre' END AS statut,
-       ROUND(AVG(salaire), 2) AS salaire_moyen
-FROM employe
-GROUP BY statut;
+select concat(m.prenom, ' ', m.nom) as manager,
+       concat(n.prenom, ' ', n.nom) as n_moins_1,
+       d.date as date_prise_en_charge
+from diriger d
+join employe m on m.id_employe = d.id_manager
+join employe n on n.id_employe = d.id_dirige
+order by manager, d.date;
 
-SELECT en.nom AS entreprise, e.nom, e.prenom, e.date_naissance
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-WHERE e.date_naissance = (SELECT MIN(date_naissance) FROM employe);
+select case when id_employe in (select id_manager from diriger)
+            then 'manager' else 'autre' end as statut,
+       round(avg(salaire), 2) as salaire_moyen
+from employe
+group by statut;
 
-SELECT en.nom AS entreprise, m.nom, m.prenom, COUNT(*) AS nb_diriges
-FROM diriger d
-JOIN employe m     ON m.id_employe     = d.id_manager
-JOIN entreprise en ON en.id_entreprise = m.id_entreprise
-GROUP BY en.nom, m.id_employe, m.nom, m.prenom
-HAVING COUNT(*) >= ALL (SELECT COUNT(*) FROM diriger GROUP BY id_manager);
+select en.nom as entreprise, e.nom, e.prenom, e.date_naissance
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+where e.date_naissance = (select min(date_naissance) from employe);
 
-SELECT m.nom, m.prenom, COUNT(*) AS nb_diriges
-FROM diriger d
-JOIN employe m ON m.id_employe = d.id_manager
-GROUP BY m.id_employe, m.nom, m.prenom
-HAVING COUNT(*) > 1;
+select en.nom as entreprise, m.nom, m.prenom, count(*) as nb_diriges
+from diriger d
+join employe m     on m.id_employe     = d.id_manager
+join entreprise en on en.id_entreprise = m.id_entreprise
+group by en.nom, m.id_employe, m.nom, m.prenom
+having count(*) >= all (select count(*) from diriger group by id_manager);
 
-SELECT nom, prenom, salaire,
-       ROUND(salaire * 100.0 / SUM(salaire) OVER (), 2) AS pourcentage
-FROM employe;
+select m.nom, m.prenom, count(*) as nb_diriges
+from diriger d
+join employe m on m.id_employe = d.id_manager
+group by m.id_employe, m.nom, m.prenom
+having count(*) > 1;
 
-SELECT en.nom AS entreprise, e.nom, e.prenom, e.salaire,
-       ROUND(e.salaire * 100.0 / SUM(e.salaire) OVER (PARTITION BY e.id_entreprise), 2) AS pourcentage
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-ORDER BY en.nom;
+select nom, prenom, salaire,
+       round(salaire * 100.0 / sum(salaire) over (), 2) as pourcentage
+from employe;
 
-SELECT en.nom AS entreprise, e.nom, e.prenom, e.salaire
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-WHERE e.salaire = (SELECT MAX(e2.salaire) FROM employe e2
-                   WHERE e2.id_entreprise = e.id_entreprise)
-ORDER BY en.nom;
+select en.nom as entreprise, e.nom, e.prenom, e.salaire,
+       round(e.salaire * 100.0 / sum(e.salaire) over (partition by e.id_entreprise), 2) as pourcentage
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+order by en.nom;
 
-SELECT en.nom AS entreprise, COUNT(*) AS nb_salaries_plus_35k
-FROM employe e
-JOIN entreprise en ON en.id_entreprise = e.id_entreprise
-WHERE e.salaire > 35000
-GROUP BY en.nom
-HAVING COUNT(*) >= 3;
+select en.nom as entreprise, e.nom, e.prenom, e.salaire
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+where e.salaire = (select max(e2.salaire) from employe e2
+                   where e2.id_entreprise = e.id_entreprise)
+order by en.nom;
+
+select en.nom as entreprise, count(*) as nb_salaries_plus_35k
+from employe e
+join entreprise en on en.id_entreprise = e.id_entreprise
+where e.salaire > 35000
+group by en.nom
+having count(*) >= 3;
