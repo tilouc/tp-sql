@@ -1,11 +1,3 @@
--- =====================================================================
--- TP SQL - Exercice 2 : Insertion des données
--- =====================================================================
-
--- 1. Insertion avec INSERT INTO ... VALUES ...
---    Ordre imposé par les clés étrangères :
---    entreprise -> employe -> diriger
-
 INSERT INTO entreprise (id_entreprise, nom, date_creation) VALUES
     (1, 'Atlas Distribution', '2015-03-12'),
     (2, 'NordTech',           '2018-09-24'),
@@ -33,16 +25,8 @@ INSERT INTO diriger (id_manager, id_dirige, date) VALUES
     (109, 107, '2024-04-12'),
     (109, 110, '2024-04-12');
 
--- 2. Valeur requise non soumise (laissée vide)
 INSERT INTO employe (id_employe, nom, date_naissance, salaire, id_entreprise)
 VALUES (111, 'Test', '1990-01-01', 30000, 1);
--- ERREUR : null value in column "prenom" of relation "employe"
---          violates not-null constraint
--- La colonne prenom est NOT NULL : la ligne est refusée.
 
--- 3. Attribut de type erroné (chaîne au lieu d'un entier)
 INSERT INTO employe (id_employe, nom, prenom, date_naissance, salaire, id_entreprise)
 VALUES (111, 'Test', 'Test', '1990-01-01', 'beaucoup', 1);
--- ERREUR : invalid input syntax for type integer: "beaucoup"
--- salaire est de type INTEGER : la valeur ne peut pas être convertie,
--- la ligne est refusée.
